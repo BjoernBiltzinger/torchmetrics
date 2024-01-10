@@ -125,7 +125,10 @@ class ClasswiseWrapper(WrapperMetric):
         self.metric = metric
 
         if labels is not None and not (isinstance(labels, Iterable) and all(isinstance(lab, str) for lab in labels)):
-            raise ValueError(f"Expected argument `labels` to either be `None` or a list of strings but got {labels}")
+            raise ValueError(
+                f"Expected argument `labels` to either be `None` or a Iterable of strings but "
+                f"got {labels} (type: {type(labels)}))"
+            )
         self.labels = labels
 
         if prefix is not None and not isinstance(prefix, str):

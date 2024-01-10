@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Any, Dict, List, Optional, Sequence, Union
-
+from collections.abc import Iterable
 from torch import Tensor
 
 from torchmetrics.metric import Metric
@@ -124,7 +124,7 @@ class ClasswiseWrapper(WrapperMetric):
             raise ValueError(f"Expected argument `metric` to be an instance of `torchmetrics.Metric` but got {metric}")
         self.metric = metric
 
-        if labels is not None and not (isinstance(labels, list) and all(isinstance(lab, str) for lab in labels)):
+        if labels is not None and not (isinstance(labels, Iterable) and all(isinstance(lab, str) for lab in labels)):
             raise ValueError(f"Expected argument `labels` to either be `None` or a list of strings but got {labels}")
         self.labels = labels
 
@@ -148,7 +148,7 @@ class ClasswiseWrapper(WrapperMetric):
             postfix = self._postfix or ""
         if self.labels is None:
             return {f"{prefix}{i}{postfix}": val for i, val in enumerate(x)}
-        return {f"{prefix}{lab}{postfix}": val for lab, val in zip(self.labels, x)}
+        return {f"{prefix}{lab}{postfix}": val for lab, val in zip(self.labels, x, strict=True)}
 
     def forward(self, *args: Any, **kwargs: Any) -> Any:
         """Calculate on batch and accumulate to global state."""

@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 import torch
 from torchmetrics import MetricCollection
@@ -39,25 +40,30 @@ def test_output_no_labels():
 def test_output_with_labels():
     """Test that wrapper works with label input."""
     labels = ["horse", "fish", "cat"]
-    base = MulticlassAccuracy(num_classes=3, average=None)
-    metric = ClasswiseWrapper(MulticlassAccuracy(num_classes=3, average=None), labels=labels)
-    for _ in range(2):
-        preds = torch.randn(20, 3).softmax(dim=-1)
-        target = torch.randint(3, (20,))
-        val = metric(preds, target)
-        val_base = base(preds, target)
-        assert isinstance(val, dict)
-        assert len(val) == 3
-        for i, lab in enumerate(labels):
-            assert f"multiclassaccuracy_{lab}" in val
-            assert val[f"multiclassaccuracy_{lab}"] == val_base[i]
-        val = metric.compute()
-        val_base = base.compute()
-        assert isinstance(val, dict)
-        assert len(val) == 3
-        for i, lab in enumerate(labels):
-            assert f"multiclassaccuracy_{lab}" in val
-            assert val[f"multiclassaccuracy_{lab}"] == val_base[i]
+
+    # Label input as list and other iterable
+    for metric in [
+        ClasswiseWrapper(MulticlassAccuracy(num_classes=3, average=None), labels=labels),
+        ClasswiseWrapper(MulticlassAccuracy(num_classes=3, average=None), labels=np.array(labels)),
+    ]:
+        base = MulticlassAccuracy(num_classes=3, average=None)
+        for _ in range(2):
+            preds = torch.randn(20, 3).softmax(dim=-1)
+            target = torch.randint(3, (20,))
+            val = metric(preds, target)
+            val_base = base(preds, target)
+            assert isinstance(val, dict)
+            assert len(val) == 3
+            for i, lab in enumerate(labels):
+                assert f"multiclassaccuracy_{lab}" in val
+                assert val[f"multiclassaccuracy_{lab}"] == val_base[i]
+            val = metric.compute()
+            val_base = base.compute()
+            assert isinstance(val, dict)
+            assert len(val) == 3
+            for i, lab in enumerate(labels):
+                assert f"multiclassaccuracy_{lab}" in val
+                assert val[f"multiclassaccuracy_{lab}"] == val_base[i]
 
 
 def test_output_with_prefix():

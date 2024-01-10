@@ -13,6 +13,7 @@
 # limitations under the License.
 # this is just a bypass for this module name collision with built-in one
 from collections import OrderedDict
+from collections.abc import Mapping
 from copy import deepcopy
 from typing import Any, Dict, Hashable, Iterable, Iterator, List, Optional, Sequence, Tuple, Union
 
@@ -411,7 +412,7 @@ class MetricCollection(ModuleDict):
                 f" with first passed dictionary {metrics} so they will be ignored."
             )
 
-        if isinstance(metrics, dict):
+        if isinstance(metrics, Mapping):
             # Check all values are metrics
             # Make sure that metrics are added in deterministic order
             for name in sorted(metrics.keys()):
@@ -449,8 +450,8 @@ class MetricCollection(ModuleDict):
                         self[k] = v
         else:
             raise ValueError(
-                "Unknown input to MetricCollection. Expected, `Metric`, `MetricCollection` or `dict`/`sequence` of the"
-                f" previous, but got {metrics}"
+                "Unknown input to MetricCollection. Expected, `Metric`, `MetricCollection` or `mapping`/`sequence` "
+                f"of the previous, but got {metrics} (type: {type(metrics)})"
             )
 
         self._groups_checked = False

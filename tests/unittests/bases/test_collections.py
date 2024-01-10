@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pickle
+from collections.abc import Mapping
 from copy import deepcopy
 from typing import Any
 
@@ -76,6 +77,36 @@ def test_metric_collection(tmpdir):
     metric_pickled = pickle.dumps(metric_collection)
     metric_loaded = pickle.loads(metric_pickled)
     assert isinstance(metric_loaded, MetricCollection)
+
+
+def test_metric_collection_from_mapping(tmpdir):
+    """Test that metric collection can be initialized from a general mapping."""
+    # First test that it works with a dict
+    m1 = DummyMetricSum()
+    m2 = DummyMetricDiff()
+    metric_collection = MetricCollection({"m1": m1, "m2": m2})
+    assert len(metric_collection) == 2
+    assert metric_collection["m1"] == m1
+    assert metric_collection["m2"] == m2
+
+    # Try a different Mapping
+    class BaseMapping(Mapping):
+        def __init__(self, data) -> None:
+            self.data = data
+
+        def __getitem__(self, key) -> Any:
+            return self.data[key]
+
+        def __iter__(self) -> Any:
+            return iter(self.data)
+
+        def __len__(self) -> int:
+            return len(self.data)
+
+    metric_collection = MetricCollection(BaseMapping({"m1": m1, "m2": m2}))
+    assert len(metric_collection) == 2
+    assert metric_collection["m1"] == m1
+    assert metric_collection["m2"] == m2
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="Test requires GPU.")
